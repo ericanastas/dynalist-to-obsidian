@@ -3,7 +3,6 @@ const fetch = require("node-fetch");
 const path = require('path');
 const fs = require('fs');
 
-
 console.log("Reading file list from dynalist.io/api...")
 
 fetch("https://dynalist.io/api/v1/file/list", {
@@ -18,8 +17,6 @@ fetch("https://dynalist.io/api/v1/file/list", {
     .then((val) => importFolder(val.folder, val.files))
     .catch(err => console.error(err));
 
-
-
 /**
  * Structures the file/document objects hiearctically replacing the `children` properties of
  * each node with an array of the actual children nodes. Also, adds a path property to each node
@@ -33,7 +30,7 @@ function structureFiles(filesBody) {
 
     if (filesBody._code != "Ok") throw `body._code != "Ok"`;
 
-    console.log(`${filesBody.files.length} Dynalist folders and documents found.`);
+    console.log(`${filesBody.files.length} folders and documents found in Dynalist account.`);
 
     /**
      * Replaces the children array of node ids, with an array of the actual child node objects
@@ -45,6 +42,14 @@ function structureFiles(filesBody) {
 
         let childNodes = [];
 
+
+        function cleanPathPart(pathPart) {
+            const pattern = /[^\w\.!@#$^+=-\s\(\)&]/
+            let cleaned = pathPart.replace(pattern, "_");
+            cleaned = cleaned.trim();
+            return cleaned;
+        }
+
         for (let childNodeId of folderNode.children) {
 
             //Find the childNode
@@ -54,13 +59,26 @@ function structureFiles(filesBody) {
 
 
             if (childNode.type == "folder") {
-                childNode.path = path.join(folderNode.path, cleanPathPart(childNode.title));
-                console.log(childNode.path);
+
+                let folderName = cleanPathPart(childNode.title);
+
+                childNode.path = path.join(folderNode.path, folderName);
+
+                if (childNode.title != folderName) {
+                    console.warn(`Folder name changed from original title: "${childNode.title}" => "${folderName}"`);
+                }
+
                 replaceChildren(childNode);
             }
             else if (childNode.type == "document") {
-                childNode.path = path.join(folderNode.path, cleanPathPart(childNode.title) + ".md");
-                console.log(childNode.path + " [FILE]");
+
+                let fileName = cleanPathPart(childNode.title);
+
+                if (childNode.title != childNode.title) {
+                    console.warn(`File name changed from original document title: "${childNode.title}" => "${fileName}.md"`);
+                }
+
+                childNode.path = path.join(folderNode.path, fileName + ".md");
             }
             else throw `Unexpected file.type: ${file.type}`
 
@@ -80,17 +98,11 @@ function structureFiles(filesBody) {
 
 }
 
-
-
-
-
-
 /**
  * Imports the Dynalist folder
  * @param {*} folder The folderNode to import*
  * @param {*} files Flat list of files nodes from API
  */
-
 function importFolder(folder, files) {
 
     function importFolderContents() {
@@ -101,13 +113,13 @@ function importFolder(folder, files) {
         }
     }
 
-    //Attempt to access destPath
+    //Attempt to access folder.path
     fs.access(folder.path, function (err) {
 
-        if (err) { //destPath does not exist
+        if (err) {
 
-            //create the directory
-            console.log(`Destination folder does not exist. Creating folder: ${folder.path}`);
+            //Create folder if it doesn't exist
+            console.log(`Creating folder: ${folder.path}`);
             fs.mkdir(folder.path, function (err) {
 
                 if (err) {
@@ -119,11 +131,9 @@ function importFolder(folder, files) {
                 }
             });
         }
-        else { //destPath exists
-
-            console.log(`Destination folder exists: ${destPath}`);
-            fs.readdir(path, function (err, files) {
-
+        else {
+            //Check if existing folder is empty
+            fs.readdir(folder.path, function (err, folderContents) {
                 if (err) {
                     console.error(err);
                     throw err;
@@ -134,35 +144,36 @@ function importFolder(folder, files) {
                     importFolderContents();
                 }
                 else {
+                    console.log(`Existing folder found: ${folder.path}`);
                     importFolderContents();
                 }
-
             })
         }
     })
 }
 
-function importDocumentToMdFile(documentNode, files) {
-    fs.appendFile(documentNode.path, 'placeholder data', function (err) {
-        if (err) throw err;;
-    })
-}
-
 /**
- * Removes/replaced invalid characters from a file or folder name
- * @param {*} pathPart 
+ * 
+ * @param {*} documentNode 
+ * @param {*} files 
  */
-function cleanPathPart(pathPart) {
-    const pattern = /[^\w\.!@#$^+=-\s\(\)&]/
-    let cleaned = pathPart.replace(pattern, "_");
+function importDocumentToMdFile(documentNode, files) {
 
-    cleaned = cleaned.trim();
+    fs.access(documentNode.path, function (err) {
 
-    if (cleaned != pathPart) {
-        console.warn(`File name changed from original document title. "${pathPart}" => "${cleaned}"`);
-    }
-
-    return cleaned;
+        if (err) {
+            console.log(`Creating file: ${documentNode.path}`);
+            fs.appendFile(documentNode.path, 'placeholder data', function (err) {
+                if (err) throw err;;
+            })
+        }
+        else {
+            console.error(`Existing file found: ${documentNode.path}`);
+        }
+    });
 }
+
+
+
 
 
