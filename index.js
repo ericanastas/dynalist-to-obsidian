@@ -241,10 +241,13 @@ function writeMdFile(documentBody, documentFile, files) {
         if (err) {
 
             console.log(`Creating file: ${documentFile.path}`);
+            let writeStream = fs.createWriteStream(documentFile.path);
+            writeStream.on('finish', function () {
+                console.log(`Completed writing file: ${documentFile.path}`)
+            });
 
-            fs.appendFile(documentFile.path, JSON.stringify(documentBody, null, 4), function (err) {
-                if (err) throw err;;
-            })
+            writeStream.write(JSON.stringify(documentBody, null, 4), 'utf8');
+            writeStream.end();
         }
         else console.error(`Existing file found: ${documentFile.path}`);
     });
