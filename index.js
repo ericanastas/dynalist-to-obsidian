@@ -128,10 +128,10 @@ function importFolder(folder, files) {
                     console.error(err);
                     throw err;
                 }
-                else if (files.length > 0) {
-                    let errMess = `Destination folder is not empty: ${destPath}`;
-                    console.error(errMess);
-                    throw errMess;
+                else if (folderContents.length > 0) {
+                    let errMess = `Existing folder is not empty: ${folder.path}`;
+                    console.warn(errMess);
+                    importFolderContents();
                 }
                 else {
                     importFolderContents();
