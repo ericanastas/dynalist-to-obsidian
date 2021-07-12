@@ -4,6 +4,7 @@
     "password": "<--Your Dynalist Account Password-->",
     "token": "<--Your Dynalist API Token-->"
   },
-  "vaultPath": "C:/path/to/your/dynalist/vault",
-  "destinationPath": "dynalist-import"
+  "vaultPath": "test-vault",
+  "destinationPath": "dynalist-import",
+  "requestInterval": 2000
 }

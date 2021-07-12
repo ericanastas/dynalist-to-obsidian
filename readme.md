@@ -1,17 +1,24 @@
 # Dynalist to Obsidian
 
-This script downloads the folders and Documents in an [dynalist.io]([https://](https://dynalist.io/d/7s0fj7POXjF7mIPvRDXLIkJG)) into a directory of markdownfiles compatible with [obsidian.md](https://obsidian.md/).
+This script downloads the folders and documents in an [dynalist.io](https://dynalist.io/) into folder structure of markdown files compatible with [obsidian.md](https://obsidian.md/).
 
+## Setup
 
-## Usage 
-
-1. Download the code for this script from GitHub
+1. Clone/Download this script from GitHub
 2. If you don't already have it, install [NodeJS](https://nodejs.org/en/). (v14.7.1 was used durring development of this script)
-3. Aquired an API Token from the [developer site](https://dynalist.io/developer)
-4. Edit `config.json`
-   1. Add the the email and password for your Dynalist account
-   2. Add your API token.
-   3. Set `vaultPath` to the path to your vault
-   4. Set `destinationPath` to the relative path within your vault where you would like to import your Dynalist documents.
-5. Run the script: `node index.js`
+5. Run `npm install` to install required packages.
 
+## Configure
+
+Before running the script you will need to configure it by editing `config.json`.
+
+- **credentials.email:** Email for your Dynalist account
+- **credentials.password:** Password for your Dynalist account. This is required for downloading attachments.
+- **credentials.token:** API Token from the [developer site](https://dynalist.io/developer).
+- **vaultPath:** The path to the Obsidian vault to import into.
+- **destinationPath:** A relative path within your vault where you would like to import your Dynalist documents.
+- **requestInterval:** The interval between requests to the DynaList API. 
+
+## Run the Script
+
+Run `node index.js` to begin the migration.

@@ -100,27 +100,33 @@ function structureFiles(filesBody) {
 
 /**
  * Imports the Dynalist folder
- * @param {*} folder The folderNode to import*
+ * @param {*} folderFile The folderNode to import*
  * @param {*} files Flat list of files nodes from API
  */
-function importFolder(folder, files) {
+function importFolder(folderFile, files) {
 
     function importFolderContents() {
-        for (let child of folder.children) {
-            if (child.type == "folder") importFolder(child, files);
-            else if (child.type == "document") importDocumentToMdFile(child, files)
+        for (let childFile of folderFile.children) {
+            if (childFile.type == "folder") importFolder(childFile, files);
+            else if (childFile.type == "document") {
+
+                fs.access(childFile.path, function (err) {
+                    if (err) queueDocumentFile(childFile, files)
+                    else console.error(`Skipping document "${childFile.title}". Existing file found: ${childFile.path}`);
+                });
+            }
             else throw `Unexpected file.type: ${file.type}`
         }
     }
 
     //Attempt to access folder.path
-    fs.access(folder.path, function (err) {
+    fs.access(folderFile.path, function (err) {
 
         if (err) {
 
             //Create folder if it doesn't exist
-            console.log(`Creating folder: ${folder.path}`);
-            fs.mkdir(folder.path, function (err) {
+            console.log(`Creating folder: ${folderFile.path}`);
+            fs.mkdir(folderFile.path, function (err) {
 
                 if (err) {
                     console.error(err)
@@ -133,18 +139,18 @@ function importFolder(folder, files) {
         }
         else {
             //Check if existing folder is empty
-            fs.readdir(folder.path, function (err, folderContents) {
+            fs.readdir(folderFile.path, function (err, folderContents) {
                 if (err) {
                     console.error(err);
                     throw err;
                 }
                 else if (folderContents.length > 0) {
-                    let errMess = `Existing folder is not empty: ${folder.path}`;
+                    let errMess = `Existing folder is not empty: ${folderFile.path}`;
                     console.warn(errMess);
                     importFolderContents();
                 }
                 else {
-                    console.log(`Existing folder found: ${folder.path}`);
+                    console.log(`Existing folder found: ${folderFile.path}`);
                     importFolderContents();
                 }
             })
@@ -152,26 +158,100 @@ function importFolder(folder, files) {
     })
 }
 
+
+let documentFileQueue = [];
+
 /**
- * 
- * @param {*} documentNode 
+ * Reads the document from dynalist.io/api/v1/doc/read and passes the results to the writeMdFile function
+ * @param {*} documentFile 
+ * @param {*} files A collection of all files in the account
+ */
+function queueDocumentFile(documentFile, files) {
+
+    //push file the queue
+    if (documentFileQueue.length == 0) {
+        documentFileQueue.push(documentFile);
+        fetchNextDocument(files);
+    }
+    else documentFileQueue.push(documentFile);
+}
+
+
+
+/**
+ * Fetch the next document in documentFileQueue
  * @param {*} files 
  */
-function importDocumentToMdFile(documentNode, files) {
+function fetchNextDocument(files) {
+    let nextDocumentFile = documentFileQueue[0];
 
-    fs.access(documentNode.path, function (err) {
+    console.log(`Fetching document: ${nextDocumentFile.title} (id:${nextDocumentFile.id})`);
+
+    fetch("https://dynalist.io/api/v1/doc/read", {
+        "method": 'POST',
+        "content-type": 'application/json',
+        "body": JSON.stringify({
+            token: config.credentials.token,
+            file_id: nextDocumentFile.id
+        })
+    })
+        .then(res => res.json())
+        .then((respBody) => handleReadDocResponse(respBody, files))
+        .catch(err => console.error(err));
+}
+
+
+
+/**
+ * Handle a response from fetching a document from dynalist.io/api/v1/doc/read
+ * @param {*} documentBody 
+ * @param {*} files 
+ */
+function handleReadDocResponse(documentBody, files) {
+
+    if (documentBody._code == "Ok") {
+        //remove first document from the queue
+        let documentFile = documentFileQueue.shift();
+
+        //pass the doc body to writeMDFile
+        writeMdFile(documentBody, documentFile, files);
+
+        //Determine if there are more files
+        if (documentFileQueue.length > 0) {
+            setTimeout(fetchNextDocument, config.requestInterval);
+        }
+    }
+    else {
+        console.error(JSON.stringify(documentBody, null, 4));
+    }
+}
+
+
+
+/**
+ * Write a MD file from the nodes in in documentBody
+ * @param {*} documentBody The document nodes to write to the file
+ * @param {*} documentFile The file currently being created
+ * @param {*} files  All files to reference for creating links
+ */
+function writeMdFile(documentBody, documentFile, files) {
+
+    fs.access(documentFile.path, function (err) {
 
         if (err) {
-            console.log(`Creating file: ${documentNode.path}`);
-            fs.appendFile(documentNode.path, 'placeholder data', function (err) {
+
+            console.log(`Creating file: ${documentFile.path}`);
+
+            fs.appendFile(documentFile.path, JSON.stringify(documentBody, null, 4), function (err) {
                 if (err) throw err;;
             })
         }
-        else {
-            console.error(`Existing file found: ${documentNode.path}`);
-        }
+        else console.error(`Existing file found: ${documentFile.path}`);
     });
 }
+
+
+
 
 
 
