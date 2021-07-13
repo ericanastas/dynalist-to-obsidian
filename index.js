@@ -74,7 +74,7 @@ function structureFiles(filesBody) {
 
                 let fileName = cleanPathPart(childNode.title);
 
-                if (childNode.title != childNode.title) {
+                if (childNode.title != fileName) {
                     console.warn(`File name changed from original document title: "${childNode.title}" => "${fileName}.md"`);
                 }
 
@@ -242,11 +242,145 @@ function writeMdFile(documentBody, documentFile, files) {
 
             console.log(`Creating file: ${documentFile.path}`);
             let writeStream = fs.createWriteStream(documentFile.path);
+
             writeStream.on('finish', function () {
                 console.log(`Completed writing file: ${documentFile.path}`)
             });
 
-            writeStream.write(JSON.stringify(documentBody, null, 4), 'utf8');
+
+
+            //Detrmines if line breaks need to be proceded with double spaces
+            let lineBreak;
+            if (config.strictLineBreaks) lineBreak = "  \n";
+            else lineBreak = "\n";
+
+
+            function writeNode(node, level, number) {
+
+                let contentLines = node.content.split(/\r?\n/);
+
+                //Creates the indent from the level
+                let indent;
+                if (config.useTab) indent = "\t".repeat(level);
+                else indent = "\s".repeat(level * config.tabSize);
+
+                for (let lineIdx = 0; lineIdx < contentLines.length; lineIdx++) {
+
+
+                    //Indent the line
+                    writeStream.write(indent);
+
+                    //Bullet/Number
+                    //Currently the Dynalist API does not identify numbered lists so we're stuck with this for now
+                    let bullet = "- ";
+
+                    if (lineIdx == 0) {
+
+                        //Write bullet on first line only
+                        writeStream.write(bullet);
+
+                        //Checkbox
+                        let checkBox = "";
+                        if (node.checked && (node.checkbox || config.addCheckBoxes)) {
+                            checkBox = "[X] "
+                        }
+                        else if (node.checkbox) {
+                            checkBox = "[ ] "
+                        }
+                        writeStream.write(checkBox);
+
+                        //Heading Mark
+                        let heading = "";
+                        if (node.heading && node.heading > 0) {
+                            heading = "#".repeat(node.heading) + " ";
+                        }
+                        writeStream.write(heading);
+                    }
+                    else {
+                        //If writing an additional line add spaces to match the intent to the content
+                        writeStream.write(" ".repeat(bullet.length));
+                    }
+
+                    //Write Line Content
+                    let contentLine = contentLines[lineIdx];
+
+                    try {
+                        writeStream.write(contentLine);
+                    }
+                    catch (err) {
+                        console.error(err);
+                    }
+
+
+                    //Writes a #color-xxxx tag 
+                    if (lineIdx == 0) {
+                        if (node.color && config.colorTags.length > node.color) {
+                            let colorTag = ` ${config.colorTags[node.color]}`
+                            writeStream.write(colorTag);
+                        }
+                    }
+
+                    //Adds Line break to end of line
+                    writeStream.write(lineBreak);
+
+
+                } //end of conten line loop
+
+
+                //Writes node note as first child
+                if (node.note) {
+                    let noteNode = {
+                        content: node.note
+                    }
+                    writeNode(noteNode, level + 1);
+                }
+
+                //Write child nodes
+                if (node.children && node.children.length > 0) {
+                    for (let i = 0; i < node.children.length; i++) {
+                        let childNodeId = node.children[i];
+                        let child = documentBody.nodes.find(n => n.id === childNodeId);
+                        writeNode(child, level + 1, i + 1)
+                    }
+                }
+            }
+
+
+            //Get the root node of the document
+            let rootNode = documentBody.nodes.find(n => n.id == "root");
+
+            //Write the root node header if enabled
+            if (config.rootNodeHeader) {
+                writeStream.write("# ");
+                writeStream.write(rootNode.content);
+                writeStream.write(lineBreak);
+            }
+
+
+
+            //Write note
+            if (rootNode.note) {
+                let noteLines = rootNode.note.split(/\r?\n/);
+                for (let noteLine of noteLines) {
+                    writeStream.write(noteLine);
+                    writeStream.write(lineBreak);
+                }
+            }
+
+
+
+
+
+
+            if (rootNode.children && rootNode.children.length > 0) {
+
+                for (let i = 0; i < rootNode.children.length; i++) {
+                    let childNodeId = rootNode.children[i];
+                    let child = documentBody.nodes.find(n => n.id === childNodeId);
+                    writeNode(child, 0, i + 1)
+                }
+            }
+
             writeStream.end();
         }
         else console.error(`Existing file found: ${documentFile.path}`);

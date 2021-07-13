@@ -1,10 +1,10 @@
 # Dynalist to Obsidian
 
-This script downloads the folders and documents in an [dynalist.io](https://dynalist.io/) into folder structure of markdown files compatible with [obsidian.md](https://obsidian.md/).
+This script downloads the folders and documents in [dynalist.io](https://dynalist.io/) into a local folder structure of markdown files compatible with [obsidian.md](https://obsidian.md/).
 
 ## Setup
 
-1. Clone/Download this script from GitHub
+1. Clone or download this script from GitHub
 2. If you don't already have it, install [NodeJS](https://nodejs.org/en/). (v14.7.1 was used durring development of this script)
 5. Run `npm install` to install required packages.
 
@@ -18,7 +18,14 @@ Before running the script you will need to configure it by editing `config.json`
 - **vaultPath:** The path to the Obsidian vault to import into.
 - **destinationPath:** A relative path within your vault where you would like to import your Dynalist documents.
 - **requestInterval:** The interval between requests to the DynaList API. 
+- **addCheckBoxes:** Add checkboxes to list items that are completed, but did not have check boxes.
+- **strictLineBreaks:** Adds two spaces before line breaks to align with strict markdown.
 
 ## Run the Script
 
 Run `node index.js` to begin the migration.
+
+
+# Known Issuse
+
+- Numbered lists will be converted to regular bulleted lists as the [Dynalist API does not distinguish between the two](https://talk.dynalist.io/t/numbered-list-in-the-api/7883).
