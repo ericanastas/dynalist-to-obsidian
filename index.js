@@ -261,18 +261,14 @@ function writeMdFile(documentBody, documentFile, files) {
 
                 //Creates the indent from the level
                 let indent;
-                if (config.useTab) indent = "\t".repeat(level);
-                else indent = "\s".repeat(level * config.tabSize);
+                if (config.useTab) indent = "\t";
+                else indent = "\s".repeat(config.tabSize);
 
                 for (let lineIdx = 0; lineIdx < contentLines.length; lineIdx++) {
 
 
                     //Indent the line
-                    writeStream.write(indent);
-
-                    //Bullet/Number
-                    //Currently the Dynalist API does not identify numbered lists so we're stuck with this for now
-                    let bullet = "- ";
+                    writeStream.write(indent.repeat(level));
 
                     if (lineIdx == 0) {
 
@@ -297,8 +293,8 @@ function writeMdFile(documentBody, documentFile, files) {
                         writeStream.write(heading);
                     }
                     else {
-                        //If writing an additional line add spaces to match the intent to the content
-                        writeStream.write(" ".repeat(bullet.length));
+                        //If writing an additional line just add an additional indent
+                        writeStream.write(indent);
                     }
 
                     //Write Line Content
