@@ -1,13 +1,11 @@
 {
   "credentials": {
-    "email": "<--Your Dynalist Account Email-->",
-    "password": "<--Your Dynalist Account Password-->",
     "token": "<--Your Dynalist API Token-->"
   },
   "vaultPath": "test-vault",
   "destinationPath": "dynalist-import",
   "requestInterval": 2000,
-  
+
   "rootNodeHeader": false,
   "useTab": true,
   "tabSize": 4,
