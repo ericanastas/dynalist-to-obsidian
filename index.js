@@ -273,7 +273,12 @@ function writeMdFile(documentBody, documentFile, files) {
                     if (lineIdx == 0) {
 
                         //Write bullet on first line only
-                        writeStream.write(bullet);
+                        //Currently the Dynalist API does not identify numbered lists so we're stuck with this for now
+                        if (node.numbered) {
+                            writeStream.write(`${number}. `)
+                        }
+                        else writeStream.write("- ");
+
 
                         //Checkbox
                         let checkBox = "";

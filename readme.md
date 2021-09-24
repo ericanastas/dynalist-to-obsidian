@@ -24,8 +24,3 @@ Before running the script you will need to configure it by editing `config.json`
 ## Run the Script
 
 Run `node index.js` to begin the migration.
-
-
-# Known Issuse
-
-- Numbered lists will be converted to regular bulleted lists as the [Dynalist API does not distinguish between the two](https://talk.dynalist.io/t/numbered-list-in-the-api/7883).
