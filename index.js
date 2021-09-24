@@ -274,7 +274,7 @@ function writeMdFile(documentBody, documentFile, files) {
 
                         //Write bullet on first line only
                         //Currently the Dynalist API does not identify numbered lists so we're stuck with this for now
-                        if (node.numbered) {
+                        if (number) {
                             writeStream.write(`${number}. `)
                         }
                         else writeStream.write("- ");
@@ -341,7 +341,8 @@ function writeMdFile(documentBody, documentFile, files) {
                     for (let i = 0; i < node.children.length; i++) {
                         let childNodeId = node.children[i];
                         let child = documentBody.nodes.find(n => n.id === childNodeId);
-                        writeNode(child, level + 1, i + 1)
+                        if (node.numbered) writeNode(child, level + 1, i + 1);
+                        else writeNode(child, level + 1);
                     }
                 }
             }
@@ -378,7 +379,9 @@ function writeMdFile(documentBody, documentFile, files) {
                 for (let i = 0; i < rootNode.children.length; i++) {
                     let childNodeId = rootNode.children[i];
                     let child = documentBody.nodes.find(n => n.id === childNodeId);
-                    writeNode(child, 0, i + 1)
+
+                    if (rootNode.numbered) writeNode(child, 0, i + 1);
+                    else writeNode(child, 0);
                 }
             }
 
