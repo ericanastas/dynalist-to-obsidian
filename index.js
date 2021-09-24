@@ -282,7 +282,7 @@ function writeMdFile(documentBody, documentFile, files) {
 
                         //Checkbox
                         let checkBox = "";
-                        if (node.checked && (node.checkbox || config.addCheckBoxes)) {
+                        if (node.checked && (node.checkbox || config.addCompletedCheckBoxes)) {
                             checkBox = "[X] "
                         }
                         else if (node.checkbox) {

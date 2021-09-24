@@ -16,7 +16,7 @@ Before running the script you will need to configure it by editing `config.json`
 - **vaultPath:** The path to the Obsidian vault to import into.
 - **destinationPath:** A relative path within your vault where you would like to import your Dynalist documents.
 - **requestInterval:** The interval between requests to the DynaList API. 
-- **addCheckBoxes:** Add checkboxes to list items that are completed, but did not have check boxes.
+- **addCompletedCheckBoxes:** Add completed checkboxes to completed list items regardless of whether they have a checkbox. Markdown items do not have the ability to be "complete" independent of a checkbox like Dynalist nodes.
 - **strictLineBreaks:** Adds two spaces before line breaks to align with strict markdown.
 
 ## Run the Script
