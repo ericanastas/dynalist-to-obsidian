@@ -12,9 +12,12 @@ This script downloads the folders and documents in [dynalist.io](https://dynalis
 
 Before running the script you will need to configure it by editing `config.json`.
 
+- **credentials.email:** Email for your Dynalist account. This is required for downloading attachments.
+- **credentials.password:** Password for your Dynalist account. This is required for downloading attachments.
 - **credentials.token:** API Token from the [developer site](https://dynalist.io/developer).
 - **vaultPath:** The path to the Obsidian vault to import into.
 - **destinationPath:** A relative path within your vault where you would like to import your Dynalist documents.
+- **downloadAttachments:** Set to true to download attachments from Dynalist.
 - **requestInterval:** The interval between requests to the DynaList API. 
 - **addCheckBoxes:** Add checkboxes to list items that are completed, but did not have check boxes.
 - **strictLineBreaks:** Adds two spaces before line breaks to align with strict markdown.
