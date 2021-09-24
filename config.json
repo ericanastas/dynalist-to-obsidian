@@ -11,6 +11,8 @@
   "tabSize": 4,
   "addCheckBoxes": true,
   "strictLineBreaks": false,
+  "documentLinks": true,
+  "blockLinks": true,
   "colorTags": [
     "",
     "#color-red",

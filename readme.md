@@ -18,6 +18,8 @@ Before running the script you will need to configure it by editing `config.json`
 - **requestInterval:** The interval between requests to the DynaList API. 
 - **addCheckBoxes:** Add checkboxes to list items that are completed, but did not have check boxes.
 - **strictLineBreaks:** Adds two spaces before line breaks to align with strict markdown.
+- **documentLinks:** Set to true to update internal links to between Dynalist documents with links to the new migrated files.
+- **blockLinks:** Set to true to migrate links to specific nodes within documents as [block links](https://help.obsidian.md/How+to/Link+to+blocks). This requires adding a `^header-id` to the target items. If `blockLinks=false `and  `documentLinks=true` then links to specific nodes will be replaced with a link to the migrated file.
 
 ## Run the Script
 
